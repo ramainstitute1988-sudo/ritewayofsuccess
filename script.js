@@ -181,23 +181,27 @@ if (form) {
     const emailEl = document.getElementById('email');
     const msgEl = document.getElementById('message');
 
-    // 1) EMAIL auto-delivery (FormSubmit.co) — details seedhe email par
+    // 1) EMAIL auto-delivery (FormSubmit.co) — response check ke saath
+    let emailReady = null;
     if (isEmail) {
-      fetch('https://formsubmit.co/ajax/' + encodeURIComponent(FORM_EMAIL), {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-        body: JSON.stringify({
-          _subject: 'New Admission Enquiry - RITEwayofsuccess Computer Institute',
-          _template: 'table',
-          _captcha: 'false',
-          'Name': name.value.trim(),
-          'Mobile': phone.value.trim(),
-          'Email': emailEl.value.trim() || '-',
-          'Course': course.value,
-          'Message': msgEl.value.trim() || '-',
-          'Source': 'Website Admission Form'
-        })
-      }).catch(() => {});
+      emailReady = Promise.race([
+        fetch('https://formsubmit.co/ajax/' + encodeURIComponent(FORM_EMAIL), {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+          body: JSON.stringify({
+            _subject: 'New Admission Enquiry - RITEwayofsuccess Computer Institute',
+            _template: 'table',
+            _captcha: 'false',
+            'Name': name.value.trim(),
+            'Mobile': phone.value.trim(),
+            'Email': emailEl.value.trim() || '-',
+            'Course': course.value,
+            'Message': msgEl.value.trim() || '-',
+            'Source': 'Website Admission Form'
+          })
+        }).then(r => r.json()).then(d => { if (!d || String(d.success) !== 'true') throw new Error('rejected'); }),
+        new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), 9000))
+      ]);
     }
 
     // 2) WHATSAPP auto-delivery (agar CallMeBot API key set hai)
@@ -209,19 +213,28 @@ if (form) {
       fetch(api, { mode: 'no-cors' }).catch(() => {});
     }
 
-    // 3) Success message
-    if (isEmail) {
-      success.innerHTML = '✅ Details bhej di gayi hain! Email inbox check karein — <strong>pehli baar ek confirmation email</strong> aayega, usme ka link ek baar click karein. Uske baad hamesha automatic aayengi.';
+    // 3) Success message — email ka real result + hamesha WhatsApp quick button
+    const waHref = 'https://wa.me/' + WHATSAPP_AUTO.phone + '?text=' + encodeURIComponent(text);
+    const waBtn = ' <a class="succ-wa" href="' + waHref + '" target="_blank" rel="noopener">💬 Ek tap — WhatsApp par bhej dein</a>';
+    const showSucc = (html, ms) => {
+      success.innerHTML = html;
+      success.classList.add('show');
+      if (ms) setTimeout(() => success.classList.remove('show'), ms);
+    };
+
+    if (emailReady) {
+      showSucc('⏳ Details bhej rahe hain...', 0);
+      emailReady
+        .then(() => showSucc('✅ Details aapke email par bhej diye gaye hain ✓ (inbox ya Spam check karein) — hamari team jaldi contact karegi.', 14000))
+        .catch(() => showSucc('⚠️ Email par abhi dikkat hai — <strong>ek tap</strong> mein WhatsApp par bhej dein, details (naam, mobile, email) turant pahunch jayengi:' + waBtn, 30000));
     } else if (isAutoWa) {
-      success.innerHTML = '✅ Details aapke WhatsApp par bhej di gayi hain ✓ Hamari team jaldi aapse contact karegi.';
+      showSucc('✅ Details aapke WhatsApp par bhej di gayi hain ✓ Hamari team jaldi aapse contact karegi.', 9000);
     } else {
-      window.open('https://wa.me/' + WHATSAPP_AUTO.phone + '?text=' + encodeURIComponent(text), '_blank', 'noopener');
-      success.innerHTML = '✅ Details ready! WhatsApp khul raha hai — bas <strong>Send</strong> dabayein, enquiry hamare paas pahunch jayegi.';
+      window.open(waHref, '_blank', 'noopener');
+      showSucc('✅ Details ready! WhatsApp khul raha hai — bas <strong>Send</strong> dabayein:' + waBtn, 15000);
     }
 
-    success.classList.add('show');
     form.reset();
-    setTimeout(() => success.classList.remove('show'), 9000);
   });
 
   // live error clear
