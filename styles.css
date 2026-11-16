@@ -559,6 +559,30 @@ ul{list-style:none}
 }
 .wa-float svg{width:28px;height:28px}
 .wa-float:hover{transform:scale(1.1) translateY(-3px)}
+.call-float{
+  position:fixed;right:20px;bottom:136px;width:52px;height:52px;border-radius:50%;
+  background:linear-gradient(135deg,var(--gold),var(--gold-3));color:var(--maroon-900);
+  display:grid;place-items:center;
+  box-shadow:0 10px 26px rgba(209,155,29,.5);z-index:90;transition:.3s;
+  animation:callpulse 2.4s ease-in-out infinite;
+}
+.call-float svg{width:25px;height:25px}
+.call-float:hover{transform:scale(1.1) translateY(-3px);animation:none}
+@keyframes callpulse{
+  0%,100%{box-shadow:0 10px 26px rgba(209,155,29,.5)}
+  50%{box-shadow:0 10px 26px rgba(209,155,29,.5),0 0 0 10px rgba(209,155,29,.16)}
+}
+.topbar-call{color:#f4e7cf;font-weight:500;letter-spacing:.03em;transition:.3s}
+.topbar-call:hover{color:var(--gold)}
+.tel-link{color:var(--gold-2);font-weight:600;transition:.3s}
+.tel-link:hover{color:#fff}
+.call-cta{margin-top:1.2rem}
+.succ-wa{
+  display:inline-block;margin-top:.65rem;padding:.6rem 1.2rem;border-radius:99px;
+  background:linear-gradient(135deg,#25d366,#128c7e);color:#fff;font-weight:600;font-size:.92rem;
+  text-decoration:none;box-shadow:0 6px 16px rgba(18,140,126,.4);transition:.3s;
+}
+.succ-wa:hover{transform:translateY(-2px);box-shadow:0 10px 22px rgba(18,140,126,.5)}
 .to-top{
   position:fixed;right:24px;bottom:24px;width:44px;height:44px;border-radius:50%;
   background:linear-gradient(135deg,var(--gold),var(--gold-3));color:var(--maroon-900);
